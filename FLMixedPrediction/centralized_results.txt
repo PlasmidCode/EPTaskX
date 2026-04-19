@@ -1,0 +1,219 @@
+Starting run method...
+Looking for data in: /home/plasmid/Project/FLMixedPrediction/data/Renewable-energy-generation-input-feature-variables-analysis-main/data_processed
+Found Excel files: ['/home/plasmid/Project/FLMixedPrediction/data/Renewable-energy-generation-input-feature-variables-analysis-main/data_processed/wind_farms/Wind farm site 3 (Nominal capacity-99MW).xlsx', '/home/plasmid/Project/FLMixedPrediction/data/Renewable-energy-generation-input-feature-variables-analysis-main/data_processed/wind_farms/Wind farm site 1 (Nominal capacity-99MW).xlsx', '/home/plasmid/Project/FLMixedPrediction/data/Renewable-energy-generation-input-feature-variables-analysis-main/data_processed/wind_farms/Wind farm site 2 (Nominal capacity-200MW).xlsx', '/home/plasmid/Project/FLMixedPrediction/data/Renewable-energy-generation-input-feature-variables-analysis-main/data_processed/wind_farms/Wind farm site 4 (Nominal capacity-66MW).xlsx', '/home/plasmid/Project/FLMixedPrediction/data/Renewable-energy-generation-input-feature-variables-analysis-main/data_processed/wind_farms/Wind farm site 5 (Nominal capacity-36MW).xlsx', '/home/plasmid/Project/FLMixedPrediction/data/Renewable-energy-generation-input-feature-variables-analysis-main/data_processed/wind_farms/Wind farm site 6 (Nominal capacity-96MW).xlsx', '/home/plasmid/Project/FLMixedPrediction/data/Renewable-energy-generation-input-feature-variables-analysis-main/data_processed/solar_stations/Solar station site 7 (Nominal capacity-30MW).xlsx', '/home/plasmid/Project/FLMixedPrediction/data/Renewable-energy-generation-input-feature-variables-analysis-main/data_processed/solar_stations/Solar station site 4 (Nominal capacity-130MW).xlsx', '/home/plasmid/Project/FLMixedPrediction/data/Renewable-energy-generation-input-feature-variables-analysis-main/data_processed/solar_stations/Solar station site 6 (Nominal capacity-35MW).xlsx', '/home/plasmid/Project/FLMixedPrediction/data/Renewable-energy-generation-input-feature-variables-analysis-main/data_processed/solar_stations/Solar station site 8 (Nominal capacity-30MW).xlsx', '/home/plasmid/Project/FLMixedPrediction/data/Renewable-energy-generation-input-feature-variables-analysis-main/data_processed/solar_stations/Solar station site 5 (Nominal capacity-110MW).xlsx', '/home/plasmid/Project/FLMixedPrediction/data/Renewable-energy-generation-input-feature-variables-analysis-main/data_processed/solar_stations/Solar station site 1 (Nominal capacity-50MW).xlsx', '/home/plasmid/Project/FLMixedPrediction/data/Renewable-energy-generation-input-feature-variables-analysis-main/data_processed/solar_stations/Solar station site 2 (Nominal capacity-130MW).xlsx', '/home/plasmid/Project/FLMixedPrediction/data/Renewable-energy-generation-input-feature-variables-analysis-main/data_processed/solar_stations/Solar station site 3 (Nominal capacity-30MW).xlsx']
+Loading file: /home/plasmid/Project/FLMixedPrediction/data/Renewable-energy-generation-input-feature-variables-analysis-main/data_processed/wind_farms/Wind farm site 3 (Nominal capacity-99MW).xlsx
+Loading file: /home/plasmid/Project/FLMixedPrediction/data/Renewable-energy-generation-input-feature-variables-analysis-main/data_processed/wind_farms/Wind farm site 1 (Nominal capacity-99MW).xlsx
+Loading file: /home/plasmid/Project/FLMixedPrediction/data/Renewable-energy-generation-input-feature-variables-analysis-main/data_processed/wind_farms/Wind farm site 2 (Nominal capacity-200MW).xlsx
+Loading file: /home/plasmid/Project/FLMixedPrediction/data/Renewable-energy-generation-input-feature-variables-analysis-main/data_processed/wind_farms/Wind farm site 4 (Nominal capacity-66MW).xlsx
+Loading file: /home/plasmid/Project/FLMixedPrediction/data/Renewable-energy-generation-input-feature-variables-analysis-main/data_processed/wind_farms/Wind farm site 5 (Nominal capacity-36MW).xlsx
+Loading file: /home/plasmid/Project/FLMixedPrediction/data/Renewable-energy-generation-input-feature-variables-analysis-main/data_processed/wind_farms/Wind farm site 6 (Nominal capacity-96MW).xlsx
+Loading file: /home/plasmid/Project/FLMixedPrediction/data/Renewable-energy-generation-input-feature-variables-analysis-main/data_processed/solar_stations/Solar station site 7 (Nominal capacity-30MW).xlsx
+Loading file: /home/plasmid/Project/FLMixedPrediction/data/Renewable-energy-generation-input-feature-variables-analysis-main/data_processed/solar_stations/Solar station site 4 (Nominal capacity-130MW).xlsx
+Loading file: /home/plasmid/Project/FLMixedPrediction/data/Renewable-energy-generation-input-feature-variables-analysis-main/data_processed/solar_stations/Solar station site 6 (Nominal capacity-35MW).xlsx
+Loading file: /home/plasmid/Project/FLMixedPrediction/data/Renewable-energy-generation-input-feature-variables-analysis-main/data_processed/solar_stations/Solar station site 8 (Nominal capacity-30MW).xlsx
+Loading file: /home/plasmid/Project/FLMixedPrediction/data/Renewable-energy-generation-input-feature-variables-analysis-main/data_processed/solar_stations/Solar station site 5 (Nominal capacity-110MW).xlsx
+Loading file: /home/plasmid/Project/FLMixedPrediction/data/Renewable-energy-generation-input-feature-variables-analysis-main/data_processed/solar_stations/Solar station site 1 (Nominal capacity-50MW).xlsx
+Loading file: /home/plasmid/Project/FLMixedPrediction/data/Renewable-energy-generation-input-feature-variables-analysis-main/data_processed/solar_stations/Solar station site 2 (Nominal capacity-130MW).xlsx
+Loading file: /home/plasmid/Project/FLMixedPrediction/data/Renewable-energy-generation-input-feature-variables-analysis-main/data_processed/solar_stations/Solar station site 3 (Nominal capacity-30MW).xlsx
+Loaded datasets: ['wind_farm_site_3', 'wind_farm_site_1', 'wind_farm_site_2', 'wind_farm_site_4', 'wind_farm_site_5', 'wind_farm_site_6', 'solar_station_site_7', 'solar_station_site_4', 'solar_station_site_6', 'solar_station_site_8', 'solar_station_site_5', 'solar_station_site_1', 'solar_station_site_2', 'solar_station_site_3']
+Total datasets loaded: 14
+wind_farm_site_3: (17544, 12)
+wind_farm_site_1: (17544, 12)
+wind_farm_site_2: (17544, 11)
+wind_farm_site_4: (17544, 12)
+wind_farm_site_5: (17533, 10)
+wind_farm_site_6: (552, 12)
+solar_station_site_7: (17544, 7)
+solar_station_site_4: (17544, 7)
+solar_station_site_6: (17544, 7)
+solar_station_site_8: (17544, 7)
+solar_station_site_5: (17544, 7)
+solar_station_site_1: (17544, 6)
+solar_station_site_2: (17544, 6)
+solar_station_site_3: (5088, 6)
+Datasets loaded: 14
+Merging all data...
+Found 6 wind farm sites
+Found 8 solar station sites
+wind sites feature counts: {'wind_farm_site_3': 11, 'wind_farm_site_1': 11, 'wind_farm_site_2': 10, 'wind_farm_site_4': 11, 'wind_farm_site_5': 9, 'wind_farm_site_6': 11}
+wind sites feature groups: {11: ['wind_farm_site_3', 'wind_farm_site_1', 'wind_farm_site_4', 'wind_farm_site_6'], 10: ['wind_farm_site_2'], 9: ['wind_farm_site_5']}
+Selected 4 wind sites with 11 features each
+Selected wind sites: ['wind_farm_site_3', 'wind_farm_site_1', 'wind_farm_site_4', 'wind_farm_site_6']
+Processing wind site wind_farm_site_3 data with shape: (17544, 12)
+wind site wind_farm_site_3 features shape after prepare_features: (17520, 24, 9), (17520, 1)
+wind site wind_farm_site_3 split data shapes - Train: (12264, 24, 9), Val: (2628, 24, 9)
+Processing wind site wind_farm_site_1 data with shape: (17544, 12)
+wind site wind_farm_site_1 features shape after prepare_features: (17520, 24, 9), (17520, 1)
+wind site wind_farm_site_1 split data shapes - Train: (12264, 24, 9), Val: (2628, 24, 9)
+Processing wind site wind_farm_site_4 data with shape: (17544, 12)
+Warning: Feature 'Wind speed - at the height of wheel hub (˚)' not found in wind_farm_site_4, filling with 0
+wind site wind_farm_site_4 features shape after prepare_features: (17520, 24, 9), (17520, 1)
+wind site wind_farm_site_4 split data shapes - Train: (12264, 24, 9), Val: (2628, 24, 9)
+Processing wind site wind_farm_site_6 data with shape: (552, 12)
+wind site wind_farm_site_6 features shape after prepare_features: (528, 24, 9), (528, 1)
+wind site wind_farm_site_6 split data shapes - Train: (369, 24, 9), Val: (79, 24, 9)
+Merged wind data: Train samples=37161, Val samples=7963
+solar sites feature counts: {'solar_station_site_7': 6, 'solar_station_site_4': 6, 'solar_station_site_6': 6, 'solar_station_site_8': 6, 'solar_station_site_5': 6, 'solar_station_site_1': 5, 'solar_station_site_2': 5, 'solar_station_site_3': 5}
+solar sites feature groups: {6: ['solar_station_site_7', 'solar_station_site_4', 'solar_station_site_6', 'solar_station_site_8', 'solar_station_site_5'], 5: ['solar_station_site_1', 'solar_station_site_2', 'solar_station_site_3']}
+Selected 5 solar sites with 6 features each
+Selected solar sites: ['solar_station_site_7', 'solar_station_site_4', 'solar_station_site_6', 'solar_station_site_8', 'solar_station_site_5']
+Processing solar site solar_station_site_7 data with shape: (17544, 7)
+solar site solar_station_site_7 features shape after prepare_features: (17520, 24, 6), (17520, 1)
+solar site solar_station_site_7 split data shapes - Train: (12264, 24, 6), Val: (2628, 24, 6)
+Processing solar site solar_station_site_4 data with shape: (17544, 7)
+solar site solar_station_site_4 features shape after prepare_features: (17520, 24, 6), (17520, 1)
+solar site solar_station_site_4 split data shapes - Train: (12264, 24, 6), Val: (2628, 24, 6)
+Processing solar site solar_station_site_6 data with shape: (17544, 7)
+solar site solar_station_site_6 features shape after prepare_features: (17520, 24, 6), (17520, 1)
+solar site solar_station_site_6 split data shapes - Train: (12264, 24, 6), Val: (2628, 24, 6)
+Processing solar site solar_station_site_8 data with shape: (17544, 7)
+solar site solar_station_site_8 features shape after prepare_features: (17520, 24, 6), (17520, 1)
+solar site solar_station_site_8 split data shapes - Train: (12264, 24, 6), Val: (2628, 24, 6)
+Processing solar site solar_station_site_5 data with shape: (17544, 7)
+solar site solar_station_site_5 features shape after prepare_features: (17520, 24, 6), (17520, 1)
+solar site solar_station_site_5 split data shapes - Train: (12264, 24, 6), Val: (2628, 24, 6)
+Merged solar data: Train samples=61320, Val samples=13140
+Merged wind data samples: Train=37161, Val=7963
+Merged solar data samples: Train=61320, Val=13140
+
+============================================================
+TRAINING WIND FARMS GLOBAL MODEL
+============================================================
+WIND Global Model - Epoch: 10/50, Train Loss: 0.015645, Val Loss: 0.018508
+WIND Global Model - Epoch: 20/50, Train Loss: 0.012711, Val Loss: 0.019493
+WIND Global Model - Epoch: 30/50, Train Loss: 0.010180, Val Loss: 0.022462
+WIND Global Model - Epoch: 40/50, Train Loss: 0.008017, Val Loss: 0.023294
+WIND Global Model - Epoch: 50/50, Train Loss: 0.006387, Val Loss: 0.024063
+Wind model training completed. Final train loss: 0.006387, Final val loss: 0.024063
+
+============================================================
+TRAINING SOLAR STATIONS GLOBAL MODEL
+============================================================
+SOLAR Global Model - Epoch: 10/50, Train Loss: 0.007899, Val Loss: 0.010062
+SOLAR Global Model - Epoch: 20/50, Train Loss: 0.006893, Val Loss: 0.009955
+SOLAR Global Model - Epoch: 30/50, Train Loss: 0.006062, Val Loss: 0.009937
+SOLAR Global Model - Epoch: 40/50, Train Loss: 0.005067, Val Loss: 0.009845
+SOLAR Global Model - Epoch: 50/50, Train Loss: 0.004185, Val Loss: 0.010127
+Solar model training completed. Final train loss: 0.004185, Final val loss: 0.010127
+
+============================================================
+EVALUATING ALL SITES
+============================================================
+
+Evaluating site: wind_farm_site_3
+Site wind_farm_site_3 feature shape: (17520, 24, 9)
+Site wind_farm_site_3 test data shape: (2628, 24, 9)
+Warning: Incompatible feature count for wind site wind_farm_site_3. Expected 11, got 9. Skipping evaluation.
+
+Evaluating site: wind_farm_site_1
+Site wind_farm_site_1 feature shape: (17520, 24, 9)
+Site wind_farm_site_1 test data shape: (2628, 24, 9)
+Warning: Incompatible feature count for wind site wind_farm_site_1. Expected 11, got 9. Skipping evaluation.
+
+Evaluating site: wind_farm_site_2
+Warning: Feature 'Wind speed - at the height of wheel hub (m/s)' not found in wind_farm_site_2, filling with 0
+Site wind_farm_site_2 feature shape: (17520, 24, 9)
+Site wind_farm_site_2 test data shape: (2628, 24, 9)
+Warning: Incompatible feature count for wind site wind_farm_site_2. Expected 11, got 9. Skipping evaluation.
+
+Evaluating site: wind_farm_site_4
+Warning: Feature 'Wind speed - at the height of wheel hub (˚)' not found in wind_farm_site_4, filling with 0
+Site wind_farm_site_4 feature shape: (17520, 24, 9)
+Site wind_farm_site_4 test data shape: (2628, 24, 9)
+Warning: Incompatible feature count for wind site wind_farm_site_4. Expected 11, got 9. Skipping evaluation.
+
+Evaluating site: wind_farm_site_5
+Warning: Feature 'Wind speed - at the height of wheel hub (˚)' not found in wind_farm_site_5, filling with 0
+Site wind_farm_site_5 feature shape: (17509, 24, 9)
+Site wind_farm_site_5 test data shape: (2627, 24, 9)
+Warning: Incompatible feature count for wind site wind_farm_site_5. Expected 11, got 9. Skipping evaluation.
+
+Evaluating site: wind_farm_site_6
+Site wind_farm_site_6 feature shape: (528, 24, 9)
+Site wind_farm_site_6 test data shape: (80, 24, 9)
+Warning: Incompatible feature count for wind site wind_farm_site_6. Expected 11, got 9. Skipping evaluation.
+
+Evaluating site: solar_station_site_7
+Site solar_station_site_7 feature shape: (17520, 24, 6)
+Site solar_station_site_7 test data shape: (2628, 24, 6)
+Site solar_station_site_7 evaluation completed.
+Site: solar_station_site_7 Evaluation Results:
+MSE: 19.9381
+RMSE: 4.4652
+MAE: 1.8296
+R²: 0.6213
+
+Evaluating site: solar_station_site_4
+Site solar_station_site_4 feature shape: (17520, 24, 6)
+Site solar_station_site_4 test data shape: (2628, 24, 6)
+Site solar_station_site_4 evaluation completed.
+Site: solar_station_site_4 Evaluation Results:
+MSE: 136.4310
+RMSE: 11.6804
+MAE: 5.4215
+R²: 0.7587
+
+Evaluating site: solar_station_site_6
+Site solar_station_site_6 feature shape: (17520, 24, 6)
+Site solar_station_site_6 test data shape: (2628, 24, 6)
+Site solar_station_site_6 evaluation completed.
+Site: solar_station_site_6 Evaluation Results:
+MSE: 3.7725
+RMSE: 1.9423
+MAE: 0.9554
+R²: 0.9505
+
+Evaluating site: solar_station_site_8
+Site solar_station_site_8 feature shape: (17520, 24, 6)
+Site solar_station_site_8 test data shape: (2628, 24, 6)
+Site solar_station_site_8 evaluation completed.
+Site: solar_station_site_8 Evaluation Results:
+MSE: 12.6875
+RMSE: 3.5620
+MAE: 1.7142
+R²: 0.6367
+
+Evaluating site: solar_station_site_5
+Site solar_station_site_5 feature shape: (17520, 24, 6)
+Site solar_station_site_5 test data shape: (2628, 24, 6)
+Site solar_station_site_5 evaluation completed.
+Site: solar_station_site_5 Evaluation Results:
+MSE: 52.7286
+RMSE: 7.2614
+MAE: 3.4157
+R²: 0.8750
+
+Evaluating site: solar_station_site_1
+Warning: Feature 'Relative humidity (%)' not found in solar_station_site_1, filling with 0
+Site solar_station_site_1 feature shape: (17520, 24, 6)
+Site solar_station_site_1 test data shape: (2628, 24, 6)
+Site solar_station_site_1 evaluation completed.
+Site: solar_station_site_1 Evaluation Results:
+MSE: 41.3786
+RMSE: 6.4326
+MAE: 2.9347
+R²: 0.7748
+
+Evaluating site: solar_station_site_2
+Warning: Feature 'Relative humidity (%)' not found in solar_station_site_2, filling with 0
+Site solar_station_site_2 feature shape: (17520, 24, 6)
+Site solar_station_site_2 test data shape: (2628, 24, 6)
+Site solar_station_site_2 evaluation completed.
+Site: solar_station_site_2 Evaluation Results:
+MSE: 183.7266
+RMSE: 13.5546
+MAE: 7.0732
+R²: 0.7414
+
+Evaluating site: solar_station_site_3
+Warning: Feature 'Air temperature  (°C) ' not found in solar_station_site_3, filling with 0
+Site solar_station_site_3 feature shape: (5064, 24, 6)
+Site solar_station_site_3 test data shape: (760, 24, 6)
+Site solar_station_site_3 evaluation completed.
+Site: solar_station_site_3 Evaluation Results:
+MSE: 38.0704
+RMSE: 6.1701
+MAE: 3.8628
+R²: 0.3597
+
+=== Centralized Training Completed Successfully! ===

@@ -1,0 +1,48 @@
+# 基础配置
+
+# 数据配置
+data:
+  root_dir: "data/Renewable-energy-generation-input-feature-variables-analysis-main/data_processed"
+  wind_dir: "wind_farms"
+  solar_dir: "solar_stations"
+  seq_len: 96  # 输入序列长度 (24小时)
+  horizons: [4, 24, 96]  # 预测步长：1h, 6h, 24h
+  val_days: 30  # 验证集天数
+  test_days: 30  # 测试集天数
+
+# 训练配置
+training:
+  batch_size: 128
+  lr: 0.001
+  epochs: 100
+  patience: 10  # 早停 patience
+  seed: 42
+  device: "cuda"  # "cuda" or "cpu"
+
+# 模型配置
+model:
+  type: "tcn"  # 基础模型类型: tcn, lstm, transformer
+  hidden_dim: 64
+  num_layers: 3
+  dropout: 0.2
+
+# 联邦学习配置
+federated:
+  rounds: 100  # 联邦学习轮数
+  client_fraction: 0.5  # 每轮参与的客户端比例
+  local_epochs: 5  # 客户端本地训练轮数
+  strategy: "fedavg"  # 联邦学习策略: fedavg, fedprox
+  fedprox_mu: 0.01  # FedProx的mu参数
+
+# MoE配置
+moe:
+  num_experts: 8  # 专家数量
+  top_k: 2  # 选择前k个专家
+  load_balancing_loss_weight: 0.1  # 负载均衡损失权重
+  gating_type: "local"  # 门控类型: global, local
+
+# 评估配置
+evaluation:
+  metrics: ["mae", "rmse", "nrmse"]  # 评估指标
+  save_results: true
+  results_dir: "results"
