@@ -1,0 +1,5 @@
+machine_id,time_stamp,failure_domain_1,failure_domain_2,cpu_num,mem_size,status
+machine-a,0,rack-a,host-a,64,256,using
+machine-b,0,rack-b,host-b,64,256,using
+machine-c,0,rack-c,host-c,32,128,using
+machine-d,0,rack-d,host-d,32,128,using

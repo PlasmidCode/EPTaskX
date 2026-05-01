@@ -1,0 +1,5 @@
+sn,cpu_milli,memory_mib,gpu
+node-a,64000,262144,8
+node-b,64000,262144,8
+node-c,32000,131072,0
+node-d,32000,131072,0

@@ -1,1 +1,4 @@
 TaskScheduleSimu/venv/
+TaskScheduleSimu/results/
+TaskScheduleSimu/src/**/__pycache__/
+TaskScheduleSimu/src/**/*.pyc

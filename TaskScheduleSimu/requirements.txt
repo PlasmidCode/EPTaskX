@@ -1,5 +1,7 @@
 numpy
-cvxpy
 matplotlib
+pandas
 torch
 scipy
+# Optional baseline solver:
+# cvxpy

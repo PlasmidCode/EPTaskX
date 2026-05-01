@@ -1,124 +1,132 @@
 import numpy as np
 
+
 class TestDataGenerator:
-    """
-    测试数据生成器
-    """
+    """Generate reproducible forecast-driven scheduling scenarios."""
+
     def __init__(self, seed=42):
-        """
-        初始化测试数据生成器
-        
-        参数:
-        seed: 随机种子
-        """
-        np.random.seed(seed)
-    
-    def generate_problem(self, D=3, T=6, J=5):
-        """
-        生成测试问题数据
-        
-        参数:
-        D: 域数量
-        T: 时间槽数量
-        J: 任务数量
-        
-        返回:
-        问题参数字典
-        """
-        # 清洁能源发电量预测 [D, T]
-        R_hat = np.random.uniform(80, 200, size=(D, T))
-        
-        # 域算力容量 [D, T]
-        Cap = np.random.uniform(40, 80, size=(D, T))
-        
-        # 域背景负载 [D, T]
-        Base = np.random.uniform(5, 20, size=(D, T))
-        
-        # 总迁移带宽预算 [T]
-        BW_tot = np.random.uniform(30, 60, size=T)
-        BW_tot[0] = 0  # 第0个时间槽无迁移
-        
-        # 任务列表
+        self.seed = seed
+        self.rng = np.random.default_rng(seed)
+
+    def generate_problem(self, D=3, T=6, J=5, volatility=0.18, density=1.0):
+        site_types = ["solar" if d % 2 == 0 else "wind" for d in range(D)]
+        R_mean, R_lower, R_upper = self._renewable_forecast(D, T, site_types, volatility)
+
+        Cap = self.rng.uniform(55, 95, size=(D, T))
+        Base = self.rng.uniform(8, 20, size=(D, T))
+        alpha = self.rng.uniform(0.45, 0.72, size=D)
+        E_base = self.rng.uniform(8, 16, size=(D, T))
+
+        BW_link = self.rng.uniform(25, 70, size=(D, D, T))
+        for d in range(D):
+            BW_link[d, d, :] = 0.0
+        BW_tot = np.sum(BW_link, axis=(0, 1))
+        BW_tot[0] = max(BW_tot[0], 30.0)
+
         tasks = []
         for j in range(J):
-            a_j = np.random.randint(1, T-2)  # 到达时间槽
-            d_j = np.random.randint(a_j+1, T+1)  # 截止期
-            W_j = np.random.uniform(50, 150)  # 总计算需求
-            S_j = np.random.uniform(10, 30)  # 状态大小
-            src_j = np.random.randint(1, D+1)  # 初始域
-            pi_j = np.random.uniform(0.5, 1.5)  # 任务权重
-            
-            tasks.append({
-                'a_j': a_j,
-                'd_j': d_j,
-                'W_j': W_j,
-                'S_j': S_j,
-                'src_j': src_j,
-                'pi_j': pi_j
-            })
-        
-        # 能耗转换系数 [D]
-        alpha = np.random.uniform(0.4, 0.7, size=D)  # kWh/计算单位
-        
-        # 域基础能耗 [D, T]
-        E_base = np.random.uniform(5, 15, size=(D, T))
-        
-        return {
-            'D': D,
-            'T': T,
-            'R_hat': R_hat,
-            'Cap': Cap,
-            'Base': Base,
-            'BW_tot': BW_tot,
-            'tasks': tasks,
-            'alpha': alpha,
-            'E_base': E_base
+            a_j = int(self.rng.integers(1, max(2, T)))
+            d_j = int(self.rng.integers(a_j, T + 1))
+            if d_j == a_j and d_j < T:
+                d_j += 1
+            window = max(d_j - a_j + 1, 1)
+            W_j = float(self.rng.uniform(35, 90) * density * (1 + 0.08 * window))
+            S_j = float(self.rng.uniform(6, 28) * (1 + 0.08 * density))
+            src_j = int(self.rng.integers(1, D + 1))
+            pi_j = float(self.rng.uniform(0.8, 2.0))
+            tasks.append(
+                {
+                    "a_j": a_j,
+                    "d_j": d_j,
+                    "W_j": W_j,
+                    "S_j": S_j,
+                    "src_j": src_j,
+                    "pi_j": pi_j,
+                    "type": "migratable",
+                }
+            )
+
+        battery = {
+            "capacity": self.rng.uniform(25, 55, size=D),
+            "initial_soc": self.rng.uniform(8, 25, size=D),
+            "max_charge": self.rng.uniform(10, 22, size=D),
+            "max_discharge": self.rng.uniform(10, 22, size=D),
+            "charge_efficiency": np.full(D, 0.94),
+            "discharge_efficiency": np.full(D, 0.94),
         }
-    
+        battery["initial_soc"] = np.minimum(battery["initial_soc"], battery["capacity"])
+
+        site_metadata = [
+            {
+                "site_id": f"{site_types[d]}_site_{d + 1}",
+                "name": f"{site_types[d].capitalize()} Site {d + 1}",
+                "type": site_types[d],
+            }
+            for d in range(D)
+        ]
+
+        return {
+            "D": D,
+            "T": T,
+            "R_hat": R_mean,
+            "R_mean": R_mean,
+            "R_lower": R_lower,
+            "R_upper": R_upper,
+            "Cap": Cap,
+            "Base": Base,
+            "BW_tot": BW_tot,
+            "BW_link": BW_link,
+            "tasks": tasks,
+            "alpha": alpha,
+            "E_base": E_base,
+            "battery": battery,
+            "site_metadata": site_metadata,
+            "migration_cooldown": 1,
+            "weights": {
+                "grid": 1.0,
+                "migration": 0.12,
+                "sla": 15.0,
+                "curtailment": 0.02,
+                "risk": 0.05,
+            },
+        }
+
     def generate_scenarios(self):
-        """
-        生成多种测试场景
-        
-        返回:
-        场景列表
-        """
-        scenarios = []
-        
-        # 场景1: 小规模问题
-        scenarios.append({
-            'name': 'small_scale',
-            'params': self.generate_problem(D=2, T=4, J=3)
-        })
-        
-        # 场景2: 中等规模问题
-        scenarios.append({
-            'name': 'medium_scale',
-            'params': self.generate_problem(D=3, T=6, J=5)
-        })
-        
-        # 场景3: 大规模问题
-        scenarios.append({
-            'name': 'large_scale',
-            'params': self.generate_problem(D=4, T=8, J=8)
-        })
-        
-        # 场景4: 高清洁能源波动
-        high_volatility = self.generate_problem(D=3, T=6, J=5)
-        # 增加清洁能源的波动性
-        high_volatility['R_hat'] = np.random.uniform(50, 250, size=(3, 6))
-        scenarios.append({
-            'name': 'high_volatility',
-            'params': high_volatility
-        })
-        
-        # 场景5: 高任务密度
-        high_density = self.generate_problem(D=3, T=6, J=8)
-        # 增加任务的计算需求
-        for task in high_density['tasks']:
-            task['W_j'] *= 1.5
-        scenarios.append({
-            'name': 'high_density',
-            'params': high_density
-        })
-        
-        return scenarios
+        return [
+            {"name": "small_scale", "params": self.generate_problem(D=2, T=4, J=3)},
+            {"name": "medium_scale", "params": self.generate_problem(D=3, T=6, J=5)},
+            {"name": "large_scale", "params": self.generate_problem(D=4, T=8, J=8)},
+            {
+                "name": "high_volatility",
+                "params": self.generate_problem(D=3, T=6, J=5, volatility=0.34),
+            },
+            {
+                "name": "high_density",
+                "params": self.generate_problem(D=3, T=6, J=8, density=1.55),
+            },
+        ]
+
+    def _renewable_forecast(self, D, T, site_types, volatility):
+        time = np.arange(T, dtype=float)
+        R_mean = np.zeros((D, T), dtype=float)
+        for d, site_type in enumerate(site_types):
+            if site_type == "solar":
+                daylight = np.sin(np.pi * (time + 0.5) / max(T, 1))
+                profile = np.maximum(daylight, 0.0) ** 1.7
+                base = self.rng.uniform(35, 70)
+                amplitude = self.rng.uniform(70, 130)
+                curve = base + amplitude * profile
+            else:
+                phase = self.rng.uniform(0, 2 * np.pi)
+                profile = 0.55 + 0.25 * np.sin(2 * np.pi * time / max(T, 1) + phase)
+                profile += 0.18 * np.sin(4 * np.pi * time / max(T, 1) + phase / 2)
+                base = self.rng.uniform(75, 120)
+                curve = base * np.maximum(profile, 0.2)
+
+            noise = self.rng.normal(0.0, volatility, size=T)
+            R_mean[d] = np.maximum(curve * (1 + noise), 5.0)
+
+        spread = np.maximum(R_mean * (0.12 + volatility), 3.0)
+        R_lower = np.maximum(R_mean - spread, 0.0)
+        R_upper = R_mean + spread
+        return R_mean, R_lower, R_upper

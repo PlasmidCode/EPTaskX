@@ -1,325 +1,205 @@
-import matplotlib.pyplot as plt
-import numpy as np
 import os
 
+import matplotlib.pyplot as plt
+import numpy as np
+
+from utils.schedule_metrics import evaluate_schedule
+
+
 class Visualizer:
-    """
-    实验结果可视化
-    """
+    """Visualization and Markdown reporting for scheduling experiments."""
+
     def __init__(self, problem):
-        """
-        初始化可视化器
-        
-        参数:
-        problem: 问题模型实例
-        """
         self.problem = problem
-    
-    def visualize_results(self, result, output_dir='results'):
-        """
-        可视化实验结果
-        
-        参数:
-        result: 求解结果
-        output_dir: 输出目录
-        """
-        # 创建算法专用目录
-        algo_dir = os.path.join(output_dir, result['algorithm'])
+
+    def visualize_results(self, result, output_dir="results"):
+        if "x" not in result:
+            return
+        algo_dir = os.path.join(output_dir, result.get("algorithm", "unknown"))
         os.makedirs(algo_dir, exist_ok=True)
-        
-        # 1. 任务执行分配可视化
         self._visualize_task_allocation(result, algo_dir)
-        
-        # 2. 棕电补能可视化
         self._visualize_grid_energy(result, algo_dir)
-        
-        # 3. 迁移数据量可视化
         self._visualize_migration(result, algo_dir)
-        
-        # 4. 清洁能源使用情况
         self._visualize_clean_energy_usage(result, algo_dir)
-        
-        # 5. 生成算法结果的 markdown 文件
+        if "battery_soc" in result:
+            self._visualize_battery_soc(result, algo_dir)
         self._generate_algorithm_report(result, algo_dir)
-        
-        print(f"可视化结果已保存到 {algo_dir} 目录")
-    
+        print(f"Saved result artifacts to {algo_dir}")
+
     def _visualize_task_allocation(self, result, output_dir):
-        """
-        可视化任务执行分配
-        """
-        D = self.problem.D
-        T = self.problem.T
-        J = self.problem.J
-        
-        plt.figure(figsize=(12, 8))
+        D, T, J = self.problem.D, self.problem.T, self.problem.J
+        plt.figure(figsize=(12, 7))
+        width = min(0.8 / max(D, 1), 0.28)
         for j in range(J):
             for d in range(D):
-                plt.bar(np.arange(T) + d * 0.2, result['x'][j, d, :], width=0.2, label=f'Task {j+1} Domain {d+1}')
-        plt.xlabel('Time Slot')
-        plt.ylabel('Execution Amount')
-        plt.title('Task Execution Allocation')
-        plt.legend()
-        plt.savefig(os.path.join(output_dir, 'task_allocation.png'))
+                values = result["x"][j, d, :]
+                if np.max(values) <= 1e-9:
+                    continue
+                plt.bar(
+                    np.arange(T) + d * width,
+                    values,
+                    width=width,
+                    label=f"Task {j + 1} Site {d + 1}",
+                )
+        plt.xlabel("Time Slot")
+        plt.ylabel("Execution Work")
+        plt.title("Task Allocation")
+        plt.legend(fontsize=8, ncol=2)
+        plt.tight_layout()
+        plt.savefig(os.path.join(output_dir, "task_allocation.png"), dpi=180)
         plt.close()
-    
+
     def _visualize_grid_energy(self, result, output_dir):
-        """
-        可视化棕电补能
-        """
-        D = self.problem.D
-        T = self.problem.T
-        
-        plt.figure(figsize=(12, 6))
+        D, T = self.problem.D, self.problem.T
+        plt.figure(figsize=(10, 5))
         for d in range(D):
-            plt.plot(np.arange(T), result['g'][d, :], marker='o', label=f'Domain {d+1}')
-        plt.xlabel('Time Slot')
-        plt.ylabel('Grid Energy (kWh)')
-        plt.title('Grid Energy Consumption')
+            plt.plot(np.arange(T), result["g"][d, :], marker="o", label=f"Site {d + 1}")
+        plt.xlabel("Time Slot")
+        plt.ylabel("Grid Energy (kWh)")
+        plt.title("Grid Energy")
         plt.legend()
-        plt.savefig(os.path.join(output_dir, 'grid_energy.png'))
+        plt.tight_layout()
+        plt.savefig(os.path.join(output_dir, "grid_energy.png"), dpi=180)
         plt.close()
-    
+
     def _visualize_migration(self, result, output_dir):
-        """
-        可视化迁移数据量
-        """
-        J = self.problem.J
-        T = self.problem.T
-        
-        plt.figure(figsize=(12, 6))
+        J, T = self.problem.J, self.problem.T
+        plt.figure(figsize=(10, 5))
         for j in range(J):
-            plt.plot(np.arange(T), result['m'][j, :], marker='o', label=f'Task {j+1}')
-        plt.xlabel('Time Slot')
-        plt.ylabel('Migration Data (GB)')
-        plt.title('Migration Data Amount')
-        plt.legend()
-        plt.savefig(os.path.join(output_dir, 'migration.png'))
+            plt.plot(np.arange(T), result["m"][j, :], marker="o", label=f"Task {j + 1}")
+        plt.xlabel("Time Slot")
+        plt.ylabel("Migration Data (GB)")
+        plt.title("Task Migration")
+        plt.legend(fontsize=8)
+        plt.tight_layout()
+        plt.savefig(os.path.join(output_dir, "migration.png"), dpi=180)
         plt.close()
-    
+
     def _visualize_clean_energy_usage(self, result, output_dir):
-        """
-        可视化清洁能源使用情况
-        """
-        D = self.problem.D
-        T = self.problem.T
-        alpha = self.problem.alpha
-        E_base = self.problem.E_base
-        R_hat = self.problem.R_hat
-        
-        plt.figure(figsize=(12, 6))
+        D, T = self.problem.D, self.problem.T
+        load = self.problem.E_base + self.problem.alpha[:, None] * np.sum(result["x"], axis=0)
+        plt.figure(figsize=(11, 5))
         for d in range(D):
-            # 计算实际能耗
-            energy_consumption = E_base[d, :] + alpha[d] * np.sum(result['x'][:, d, :], axis=0)
-            plt.plot(np.arange(T), energy_consumption, marker='o', label=f'Domain {d+1} Actual Energy')
-            plt.plot(np.arange(T), R_hat[d, :], marker='s', label=f'Domain {d+1} Clean Energy Supply')
-        plt.xlabel('Time Slot')
-        plt.ylabel('Energy (kWh)')
-        plt.title('Clean Energy Usage')
+            plt.plot(np.arange(T), load[d, :], marker="o", label=f"Site {d + 1} Load")
+            plt.plot(np.arange(T), self.problem.R_lower[d, :], linestyle="--", label=f"Site {d + 1} P10")
+            plt.plot(np.arange(T), self.problem.R_mean[d, :], linestyle=":", label=f"Site {d + 1} Mean")
+        plt.xlabel("Time Slot")
+        plt.ylabel("Energy (kWh)")
+        plt.title("Clean Forecast vs Scheduled Load")
+        plt.legend(fontsize=8, ncol=2)
+        plt.tight_layout()
+        plt.savefig(os.path.join(output_dir, "clean_energy_usage.png"), dpi=180)
+        plt.close()
+
+    def _visualize_battery_soc(self, result, output_dir):
+        soc = result["battery_soc"]
+        plt.figure(figsize=(10, 5))
+        for d in range(self.problem.D):
+            plt.step(np.arange(soc.shape[1]), soc[d], where="post", label=f"Site {d + 1}")
+        plt.xlabel("Time Slot")
+        plt.ylabel("Battery SOC (kWh)")
+        plt.title("Battery State of Charge")
         plt.legend()
-        plt.savefig(os.path.join(output_dir, 'clean_energy_usage.png'))
+        plt.tight_layout()
+        plt.savefig(os.path.join(output_dir, "battery_soc.png"), dpi=180)
         plt.close()
-    
+
     def _generate_algorithm_report(self, result, output_dir):
-        """
-        生成算法结果的 markdown 报告
-        """
-        algorithm = result['algorithm']
-        objective = result['objective']
-        grid_energy = np.sum(result['g'])
-        migration = np.sum(result['m'][:, 1:])
-        
-        # 计算任务完成率
-        J = self.problem.J
-        total_completed = np.sum([self.problem.tasks[j]['W_j'] - result['u'][j] for j in range(J)])
-        total_work = np.sum([self.problem.tasks[j]['W_j'] for j in range(J)])
-        completion_rate = total_completed / total_work
-        
-        # 生成 markdown 内容
-        md_content = f"""# {algorithm} 算法结果报告
-
-## 基本信息
-- 算法名称: {algorithm}
-- 求解状态: {result['status']}
-- 目标函数值: {objective:.4f}
-
-## 性能指标
-- 棕电补能总量: {grid_energy:.4f} kWh
-- 迁移数据总量: {migration:.4f} GB
-- 任务完成率: {completion_rate:.4f}
-
-## 详细结果
-- 任务执行分配: task_allocation.png
-- 棕电补能情况: grid_energy.png
-- 迁移数据量: migration.png
-- 清洁能源使用情况: clean_energy_usage.png
-
-## 分析
-{self._generate_analysis(result)}
-"""
-        
-        # 写入 markdown 文件
-        with open(os.path.join(output_dir, 'report.md'), 'w') as f:
-            f.write(md_content)
-    
-    def _generate_analysis(self, result):
-        """
-        生成算法分析内容
-        """
-        algorithm = result['algorithm']
-        grid_energy = np.sum(result['g'])
-        migration = np.sum(result['m'][:, 1:])
-        
-        analysis = []
-        
-        if grid_energy == 0:
-            analysis.append("- 完全利用清洁能源，无需棕电补能")
-        else:
-            analysis.append(f"- 需要棕电补能 {grid_energy:.4f} kWh")
-        
-        if migration == 0:
-            analysis.append("- 无任务迁移，减少了网络开销")
-        else:
-            analysis.append(f"- 迁移数据量为 {migration:.4f} GB")
-        
-        # 任务完成情况
-        J = self.problem.J
-        uncompleted = np.sum(result['u'])
-        if uncompleted == 0:
-            analysis.append("- 所有任务均已完成")
-        else:
-            analysis.append(f"- 有 {uncompleted:.4f} 单位的任务未完成")
-        
-        return '\n'.join(analysis)
-    
-    def visualize_comparison(self, results, output_dir='results'):
-        """
-        可视化不同算法的比较
-        
-        参数:
-        results: 不同算法的求解结果列表
-        output_dir: 输出目录
-        """
-        # 创建比较结果目录
-        comparison_dir = os.path.join(output_dir, 'comparison')
-        os.makedirs(comparison_dir, exist_ok=True)
-        
-        # 1. 目标函数值比较
-        algorithms = [result['algorithm'] for result in results]
-        objectives = [result['objective'] for result in results]
-        
-        plt.figure(figsize=(10, 6))
-        plt.bar(algorithms, objectives)
-        plt.xlabel('Algorithm')
-        plt.ylabel('Objective Value')
-        plt.title('Objective Value Comparison')
-        plt.savefig(os.path.join(comparison_dir, 'algorithm_comparison.png'))
-        plt.close()
-        
-        # 2. 棕电补能量比较
-        grid_energies = [np.sum(result['g']) for result in results]
-        
-        plt.figure(figsize=(10, 6))
-        plt.bar(algorithms, grid_energies)
-        plt.xlabel('Algorithm')
-        plt.ylabel('Total Grid Energy (kWh)')
-        plt.title('Grid Energy Consumption Comparison')
-        plt.savefig(os.path.join(comparison_dir, 'grid_energy_comparison.png'))
-        plt.close()
-        
-        # 3. 迁移数据量比较
-        migration_data = [np.sum(result['m'][:, 1:]) for result in results]
-        
-        plt.figure(figsize=(10, 6))
-        plt.bar(algorithms, migration_data)
-        plt.xlabel('Algorithm')
-        plt.ylabel('Total Migration Data (GB)')
-        plt.title('Migration Data Comparison')
-        plt.savefig(os.path.join(comparison_dir, 'migration_comparison.png'))
-        plt.close()
-        
-        # 4. 任务完成率比较
-        J = self.problem.J
-        completion_rates = []
-        for result in results:
-            total_completed = np.sum([self.problem.tasks[j]['W_j'] - result['u'][j] for j in range(J)])
-            total_work = np.sum([self.problem.tasks[j]['W_j'] for j in range(J)])
-            completion_rates.append(total_completed / total_work)
-        
-        plt.figure(figsize=(10, 6))
-        plt.bar(algorithms, completion_rates)
-        plt.xlabel('Algorithm')
-        plt.ylabel('Completion Rate')
-        plt.title('Task Completion Rate Comparison')
-        plt.savefig(os.path.join(comparison_dir, 'completion_rate_comparison.png'))
-        plt.close()
-        
-        # 生成比较报告
-        self._generate_comparison_report(results, comparison_dir)
-        
-        print(f"算法比较结果已保存到 {comparison_dir} 目录")
-    
-    def _generate_comparison_report(self, results, output_dir):
-        """
-        生成算法比较的 markdown 报告
-        """
-        # 准备数据
-        algorithms = []
-        objectives = []
-        grid_energies = []
-        migrations = []
-        completion_rates = []
-        
-        for result in results:
-            algorithms.append(result['algorithm'])
-            objectives.append(result['objective'])
-            grid_energies.append(np.sum(result['g']))
-            migrations.append(np.sum(result['m'][:, 1:]))
-            
-            # 计算任务完成率
-            J = self.problem.J
-            total_completed = np.sum([self.problem.tasks[j]['W_j'] - result['u'][j] for j in range(J)])
-            total_work = np.sum([self.problem.tasks[j]['W_j'] for j in range(J)])
-            completion_rates.append(total_completed / total_work)
-        
-        # 生成表格
-        table_rows = []
-        for i, algo in enumerate(algorithms):
-            table_rows.append(f"| {algo} | {objectives[i]:.4f} | {grid_energies[i]:.4f} | {migrations[i]:.4f} | {completion_rates[i]:.4f} |")
-        
-        table = ("| 算法 | 目标函数值 | 棕电补能 (kWh) | 迁移数据量 (GB) | 任务完成率 |\n" +
-                "|------|------------|----------------|------------------|------------|\n" +
-                '\n'.join(table_rows))
-        
-        # 生成分析
-        best_objective_idx = np.argmin(objectives)
-        best_migration_idx = np.argmin(migrations)
-        
-        analysis = [
-            f"- 最优目标函数值: {algorithms[best_objective_idx]} ({objectives[best_objective_idx]:.4f})",
-            f"- 最少迁移数据量: {algorithms[best_migration_idx]} ({migrations[best_migration_idx]:.4f} GB)",
-            f"- 所有算法均完全完成任务"
+        metrics = self._metrics(result)
+        lines = [
+            f"# {result.get('algorithm', 'unknown')} scheduling report",
+            "",
+            "## Summary",
+            f"- Status: {result.get('status', 'unknown')}",
+            f"- Objective: {result.get('objective', float('nan')):.4f}",
+            f"- Robustness mode: {metrics.get('risk_mode', 'mean')}",
+            "",
+            "## Metrics",
+            f"- Grid energy: {metrics['grid_energy']:.4f} kWh",
+            f"- Expected grid energy: {metrics.get('expected_grid_energy', metrics['grid_energy']):.4f} kWh",
+            f"- P10 robust grid energy: {metrics.get('robust_grid_energy', metrics['grid_energy']):.4f} kWh",
+            f"- Grid emissions: {metrics.get('grid_emissions_kgco2e', 0.0):.4f} kgCO2e",
+            f"- Migration data: {metrics['migration']:.4f} GB",
+            f"- Migration events: {metrics.get('migration_events', 0.0):.0f}",
+            f"- Completion rate: {metrics['completion_rate']:.4f}",
+            f"- Deadline miss rate: {metrics.get('deadline_miss_rate', 0.0):.4f}",
+            f"- Clean energy utilization: {metrics['clean_utilization']:.4f}",
+            f"- CFE share: {metrics['cfe_share']:.4f}",
+            f"- Curtailment: {metrics['curtailment']:.4f} kWh",
+            f"- Curtailment rate: {metrics['curtailment_rate']:.4f}",
+            f"- Peak capacity utilization: {metrics.get('peak_capacity_utilization', 0.0):.4f}",
+            f"- Peak link utilization: {metrics.get('peak_link_utilization', 0.0):.4f}",
+            f"- Forecast risk exposure: {metrics.get('forecast_risk_exposure', 0.0):.4f}",
+            f"- Capacity violation: {metrics.get('capacity_violation', 0.0):.6f}",
+            f"- Link bandwidth violation: {metrics.get('link_violation', 0.0):.6f}",
+            "",
+            "## Figures",
+            "- task_allocation.png",
+            "- grid_energy.png",
+            "- migration.png",
+            "- clean_energy_usage.png",
         ]
-        
-        # 生成 markdown 内容
-        md_content = f"""# 算法比较报告
+        if "battery_soc" in result:
+            lines.append("- battery_soc.png")
+        with open(os.path.join(output_dir, "report.md"), "w", encoding="utf-8") as f:
+            f.write("\n".join(lines) + "\n")
 
-## 比较结果
+    def visualize_comparison(self, results, output_dir="results"):
+        valid = [result for result in results if "x" in result]
+        if not valid:
+            return
+        comparison_dir = os.path.join(output_dir, "comparison")
+        os.makedirs(comparison_dir, exist_ok=True)
+        algorithms = [result["algorithm"] for result in valid]
+        metrics = [self._metrics(result) for result in valid]
 
-{table}
+        self._bar(algorithms, [result["objective"] for result in valid], "Objective", comparison_dir, "algorithm_comparison.png")
+        self._bar(algorithms, [m["grid_energy"] for m in metrics], "Grid Energy (kWh)", comparison_dir, "grid_energy_comparison.png")
+        self._bar(algorithms, [m["migration"] for m in metrics], "Migration Data (GB)", comparison_dir, "migration_comparison.png")
+        self._bar(algorithms, [m["completion_rate"] for m in metrics], "Completion Rate", comparison_dir, "completion_rate_comparison.png")
+        self._bar(algorithms, [m["clean_utilization"] for m in metrics], "Clean Utilization", comparison_dir, "clean_utilization_comparison.png")
+        self._generate_comparison_report(valid, comparison_dir)
+        print(f"Saved comparison artifacts to {comparison_dir}")
 
-## 分析
+    def _bar(self, labels, values, ylabel, output_dir, filename):
+        plt.figure(figsize=(10, 5))
+        plt.bar(labels, values)
+        plt.ylabel(ylabel)
+        plt.xticks(rotation=25, ha="right")
+        plt.tight_layout()
+        plt.savefig(os.path.join(output_dir, filename), dpi=180)
+        plt.close()
 
-{chr(10).join(analysis)}
+    def _generate_comparison_report(self, results, output_dir):
+        rows = []
+        for result in results:
+            m = self._metrics(result)
+            rows.append(
+                "| {algo} | {obj:.4f} | {grid:.4f} | {mig:.4f} | {comp:.4f} | {clean:.4f} | {curt:.4f} |".format(
+                    algo=result["algorithm"],
+                    obj=result["objective"],
+                    grid=m["grid_energy"],
+                    mig=m["migration"],
+                    comp=m["completion_rate"],
+                    clean=m["clean_utilization"],
+                    curt=m["curtailment"],
+                )
+            )
+        table = "\n".join(
+            [
+                "| Algorithm | Objective | Grid(kWh) | Migration(GB) | Completion | Clean utilization | Curtailment(kWh) |",
+                "|------|----------|-----------|----------|--------|------------|-----------|",
+                *rows,
+            ]
+        )
+        with open(os.path.join(output_dir, "comparison_report.md"), "w", encoding="utf-8") as f:
+            f.write(f"# Algorithm comparison report\n\n{table}\n")
 
-## 可视化图表
-- 目标函数值比较: algorithm_comparison.png
-- 棕电补能比较: grid_energy_comparison.png
-- 迁移数据量比较: migration_comparison.png
-- 任务完成率比较: completion_rate_comparison.png
-"""
-        
-        # 写入 markdown 文件
-        with open(os.path.join(output_dir, 'comparison_report.md'), 'w') as f:
-            f.write(md_content)
-
+    def _metrics(self, result):
+        if "metrics" in result:
+            metrics = dict(result["metrics"])
+            defaults = evaluate_schedule(self.problem, result["x"], risk_mode=result.get("risk_mode", "mean"))["metrics"]
+            defaults.update(metrics)
+            metrics = defaults
+            return metrics
+        return evaluate_schedule(self.problem, result["x"], risk_mode=result.get("risk_mode", "mean"))["metrics"]

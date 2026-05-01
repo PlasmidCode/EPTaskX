@@ -1,0 +1,7 @@
+task_name,instance_num,job_name,task_type,status,start_time,end_time,plan_cpu,plan_mem
+task_1,4,job-a,M1,Terminated,0,3600,100,1.0
+task_2_1,6,job-a,R1,Terminated,1800,7200,80,1.2
+task_3,2,job-b,M1,Terminated,3600,9000,150,2.0
+task_4_3,8,job-b,R1,Terminated,5400,10800,70,1.0
+task_5,3,job-c,M1,Terminated,7200,12600,120,1.5
+task_6_5,5,job-c,R1,Terminated,9000,14400,60,1.1

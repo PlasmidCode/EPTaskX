@@ -1,197 +1,150 @@
 # 多域清洁能源预测驱动的跨域任务迁移与调度
 
-## 项目简介
+`TaskScheduleSimu` 用于验证“站点清洁能源预测结果驱动计算任务迁移与调度”的实验流程。当前版本支持合成任务负载和 Alibaba Cluster Trace 真实负载，并提供鲁棒调度、启发式基线、统一指标报告和可复现 CSV 输出。
 
-本项目实现了一个多域清洁能源预测驱动的跨域任务迁移与调度模型，基于问题建模文档实现了相关的Python代码。该模型能够在滚动时间窗内，根据多域清洁能源发电量预测序列，联合优化任务的空间放置、时间编排与跨域迁移，以最小化棕电补能并抑制频繁迁移带来的开销。
+## 核心能力
 
-## 代码结构
-
-```
-TaskScheduleSimu/
-├── src/
-│   └── task_scheduler.py  # 核心调度器实现
-└── README.md              # 项目说明文档
-```
-
-## 核心功能
-
-- **任务调度优化**：根据清洁能源预测，优化任务在不同域和时间槽的分配
-- **能量管理**：最小化棕电补能，最大化清洁能源消纳
-- **迁移控制**：抑制频繁迁移带来的网络和性能开销
-- **违约处理**：通过软约束处理任务完成情况，确保系统可行性
+- 读取预测 CSV：`site_id, slot, r_mean_kwh, r_p10_kwh, r_p90_kwh`
+- 使用 `r_p10_kwh` 作为鲁棒清洁能源下界，缺失时回退到 `0.85 * r_mean_kwh`
+- 支持 Alibaba v2023 GPU pod trace 和 v2018 batch trace
+- 支持 `peak/random/earliest/latest` 多时间窗 trace 采样，适合做多场景统计对比
+- 建模储能 SOC、充放电功率、弃电、棕电补能、链路级迁移带宽和迁移冷却
+- 输出 Markdown 报告、图表、场景级 `metrics.csv` 和综合 `comprehensive_metrics.csv`
 
 ## 安装依赖
 
 ```bash
-pip install numpy cvxpy
+cd TaskScheduleSimu
+pip install -r requirements.txt
 ```
 
-## 使用方法
+默认鲁棒调度依赖 `numpy`、`scipy`、`pandas`、`matplotlib`。`cvxpy` 是可选依赖，未安装时 `optimization` 基线会自动回退。
 
-### 导入模块
+## 调度算法
 
-```python
-from src.task_scheduler import TaskScheduler
-import numpy as np
+默认先进算法：
+
+- `robust_mpc_alns`：鲁棒 MPC 线性松弛 + ALNS 修复，使用 P10 清洁能源预测下界、储能和链路带宽约束。
+
+对比基线：
+
+- `min_grid`：棕电最小化启发式，兼顾 P10 风险、迁移和截止期。
+- `edf`：Earliest Deadline First，按截止期优先调度。
+- `source_affinity`：源站点优先/不迁移基线，用于衡量迁移收益。
+- `least_loaded`：最小容量占用率优先，用于衡量负载均衡策略。
+- `greedy`：清洁能源贪心基线，保留旧实验接口。
+- `random`：随机可行基线，用于 sanity check。
+- `optimization`：可选 `cvxpy` 连续优化基线。
+
+## 快速运行
+
+合成负载小实验：
+
+```bash
+python src/main.py --domains 2 --slots 4 --tasks 3 --alns-iterations 100
 ```
 
-### 初始化参数
+多算法对比：
 
-```python
-# 域数量
-D = 2
-# 时间槽数量
-T = 4
-
-# 清洁能源发电量预测 [D, T]
-R_hat = np.array([
-    [100, 150, 80, 120],  # 域1
-    [120, 90, 140, 100]   # 域2
-])
-
-# 域算力容量 [D, T]
-Cap = np.array([
-    [50, 50, 50, 50],  # 域1
-    [60, 60, 60, 60]   # 域2
-])
-
-# 域背景负载 [D, T]
-Base = np.array([
-    [10, 10, 10, 10],  # 域1
-    [15, 15, 15, 15]   # 域2
-])
-
-# 总迁移带宽预算 [T]
-Bw_tot = np.array([0, 50, 50, 50])  # 第0个时间槽无迁移
-
-# 任务列表
-tasks = [
-    {
-        'a_j': 1,  # 到达时间槽
-        'd_j': 4,  # 截止期
-        'W_j': 100,  # 总计算需求
-        'S_j': 20,  # 状态大小
-        'src_j': 1,  # 初始域
-        'pi_j': 1.0  # 任务权重
-    },
-    {
-        'a_j': 2,
-        'd_j': 4,
-        'W_j': 80,
-        'S_j': 15,
-        'src_j': 2,
-        'pi_j': 1.0
-    }
-]
-
-# 能耗转换系数 [D]
-alpha = np.array([0.5, 0.6])  # kWh/计算单位
-
-# 域基础能耗 [D, T]
-E_base = np.array([
-    [10, 10, 10, 10],  # 域1
-    [12, 12, 12, 12]   # 域2
-])
+```bash
+python src/main.py --domains 2 --slots 4 --tasks 3 --algorithms robust_mpc_alns,min_grid,edf,source_affinity,least_loaded,greedy
 ```
 
-### 创建调度器并求解
+运行合成多场景：
 
-```python
-# 创建调度器
-scheduler = TaskScheduler(D, T, R_hat, Cap, Base, Bw_tot, tasks, alpha, E_base)
-
-# 求解
-result = scheduler.solve()
-
-# 输出结果
-print(f"求解状态: {result['status']}")
-print(f"目标函数值: {result['objective']}")
-
-if result['status'] in ['optimal', 'optimal_inaccurate']:
-    print("\n执行分配量 x [任务, 域, 时间槽]:")
-    print(result['x'])
-    
-    print("\n棕电补能量 g [域, 时间槽]:")
-    print(result['g'])
-    
-    print("\n任务违约未完成量 u:")
-    print(result['u'])
-    
-    print("\n迁移数据量 m [任务, 时间槽]:")
-    print(result['m'])
+```bash
+python src/run_experiments.py --algorithms robust_mpc_alns,min_grid,edf,source_affinity,least_loaded,greedy
 ```
 
-## 模型参数说明
+导出或使用预测 CSV：
 
-### 输入参数
-
-- `D`：域数量
-- `T`：时间槽数量
-- `R_hat`：清洁能源发电量预测，形状为 [D, T]
-- `Cap`：域算力容量，形状为 [D, T]
-- `Base`：域背景负载，形状为 [D, T]
-- `BW_tot`：总迁移带宽预算，形状为 [T]
-- `tasks`：任务列表，每个任务包含以下字段：
-  - `a_j`：到达时间槽
-  - `d_j`：截止期
-  - `W_j`：总计算需求
-  - `S_j`：状态大小
-  - `src_j`：初始域
-  - `pi_j`：任务权重
-- `alpha`：能耗转换系数，形状为 [D]
-- `E_base`：域基础能耗，形状为 [D, T]
-
-### 可选参数
-
-- `beta`：迁移惩罚系数，默认为 1.0
-- `lambda1`：迁移惩罚权重，默认为 0.1
-- `lambda2`：违约惩罚权重，默认为 1.0
-
-### 输出结果
-
-- `status`：求解状态
-- `x`：执行分配量，形状为 [J, D, T]
-- `g`：棕电补能量，形状为 [D, T]
-- `u`：任务违约未完成量，形状为 [J]
-- `m`：迁移数据量，形状为 [J, T]
-- `objective`：目标函数值
-
-## 模型特点
-
-1. **联合优化**：同时优化任务的空间放置和时间编排
-2. **清洁能源优先**：最小化棕电补能，最大化清洁能源消纳
-3. **迁移控制**：通过带宽约束和迁移惩罚抑制频繁迁移
-4. **软约束**：通过违约变量处理系统不可行情况
-5. **连续近似**：使用连续变量近似迁移数据量，避免二进制变量带来的求解复杂性
-
-## 示例运行结果
-
-```
-求解状态: optimal
-目标函数值: 0.15000000132262742
-
-执行分配量 x [任务, 域, 时间槽]:
-[[[4.00000000e+01 1.63805739e+00 2.91813162e+00 2.83161732e+00]
-  [4.50000000e+01 1.65573468e+00 2.95621846e+00 3.00024057e+00]]
-
- [[7.61745473e-09 3.74743085e+01 2.61375615e-09 2.62906916e-09]
-  [1.35784666e-08 4.25256915e+01 2.85566818e-09 2.86516603e-09]]]
-
-棕电补能量 g [域, 时间槽]:
-[[0. 0. 0. 0.]
- [0. 0. 0. 0.]]
-
-任务违约未完成量 u:
-[0. 0.]
-
-迁移数据量 m [任务, 时间槽]:
-[[2.07742900e+01 3.29379208e-01 5.87435009e-01 5.83185790e-01]
- [2.07742900e+01 4.32713139e-10 2.91912857e-09 2.91905103e-09]]
+```bash
+python src/main.py --export-forecast-csv results/demo_forecast.csv
+python src/main.py --forecast-csv results/demo_forecast.csv --tasks 5
 ```
 
-## 注意事项
+## Alibaba Trace 实验
 
-- 本模型使用 cvxpy 库进行优化求解，默认使用内置的求解器
-- 对于大规模问题，可能需要使用更高效的求解器（如 GUROBI）
-- 可以通过调整 `lambda1` 和 `lambda2` 参数来平衡迁移开销和任务完成率
-- 模型支持考虑预测误差，可通过使用清洁能源预测的下界来提高鲁棒性
+仓库内提供极小 smoke-test 样例，用于确认环境和入口可运行：
+
+```bash
+python src/main.py --workload alibaba-v2023 --pod-csv examples/alibaba_v2023_pods_sample.csv --node-csv examples/alibaba_v2023_nodes_sample.csv --domains 2 --slots 4 --trace-task-limit 6 --alns-iterations 20
+python src/main.py --workload alibaba-v2018 --batch-task-csv examples/alibaba_v2018_batch_task_sample.csv --machine-meta-csv examples/alibaba_v2018_machine_meta_sample.csv --domains 2 --slots 4 --trace-task-limit 6 --alns-iterations 20
+```
+
+更有说服力的实验建议使用 Alibaba 官方完整 CSV，并从真实时间线上采样多个峰值窗口：
+
+```bash
+python src/run_experiments.py ^
+  --workload alibaba-v2023 ^
+  --pod-csv path\to\openb_pod_list_default.csv ^
+  --node-csv path\to\openb_node_list_default.csv ^
+  --domains 4 ^
+  --slots 24 ^
+  --trace-task-limit 300 ^
+  --trace-sample-policy peak ^
+  --trace-windows 5 ^
+  --algorithms robust_mpc_alns,min_grid,edf,source_affinity,least_loaded,greedy ^
+  --alns-iterations 300
+```
+
+v2018 batch trace：
+
+```bash
+python src/run_experiments.py ^
+  --workload alibaba-v2018 ^
+  --batch-task-csv path\to\batch_task.csv ^
+  --machine-meta-csv path\to\machine_meta.csv ^
+  --domains 4 ^
+  --slots 24 ^
+  --trace-task-limit 300 ^
+  --trace-sample-policy peak ^
+  --trace-windows 5
+```
+
+如果已有预测模块输出的站点清洁能源预测，可直接和 trace 负载组合：
+
+```bash
+python src/run_experiments.py ^
+  --workload alibaba-v2023 ^
+  --pod-csv path\to\openb_pod_list_default.csv ^
+  --forecast-csv path\to\forecast.csv ^
+  --trace-sample-policy peak ^
+  --trace-windows 5
+```
+
+## 指标
+
+报告会输出以下核心指标：
+
+- Common objective：统一目标函数，便于跨算法比较。
+- Expected grid / P10 grid：均值预测和 P10 鲁棒场景下的棕电消耗。
+- CO2e：按默认电网排放因子估算的碳排。
+- Migration / migration events：迁移数据量和迁移次数。
+- Completion / deadline miss rate：任务完成率和截止期未完成比例。
+- Clean utilization / CFE：清洁能源消纳率和清洁能源供能占比。
+- Curtailment：弃电量。
+- Peak capacity / peak link utilization：峰值容量和链路利用率。
+- Forecast risk exposure：预测区间宽度加权后的风险暴露。
+
+## 代码结构
+
+```text
+src/
+  algorithms/
+    robust_mpc_alns_scheduler.py   # 鲁棒 MPC + ALNS
+    heuristic_schedulers.py        # EDF、min-grid、source-affinity 等基线
+    greedy_scheduler.py            # 兼容旧接口的清洁能源贪心基线
+    optimization_scheduler.py      # cvxpy 可选优化基线
+  model/
+    problem.py                     # 问题模型
+  utils/
+    alibaba_trace_loader.py        # Alibaba trace 适配
+    forecast_loader.py             # 预测 CSV 读写
+    schedule_metrics.py            # 统一指标计算
+    test_data_generator.py         # 合成场景
+  visualization/
+    visualizer.py                  # 图表和 Markdown 报告
+```
+
+实验结果默认写入 `results/`，该目录已加入 `.gitignore`。

@@ -1,0 +1,9 @@
+name,cpu_milli,memory_mib,num_gpu,gpu_milli,qos,pod_phase,creation_time,deletion_time,scheduled_time
+pod-a,4000,8192,1,1000,LS,Succeeded,0,3600,60
+pod-b,2000,4096,0,0,Burstable,Succeeded,900,5400,960
+pod-c,8000,16384,2,1000,LS,Succeeded,1800,7200,1860
+pod-d,1000,2048,0,0,BE,Succeeded,2700,4500,2760
+pod-e,6000,8192,1,500,Burstable,Succeeded,3600,9000,3660
+pod-f,3000,4096,0,0,BE,Succeeded,4500,8100,4560
+pod-g,12000,32768,4,1000,LS,Succeeded,5400,10800,5460
+pod-h,2500,4096,0,0,Burstable,Succeeded,6300,9900,6360
