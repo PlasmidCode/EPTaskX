@@ -207,6 +207,12 @@ def main():
     ap.add_argument("--tb_log_dir", type=str, default="logs", help="TensorBoard log directory")
     ap.add_argument("--use_renewable", action="store_true", help="Use renewable energy dataset (wind and solar farms)")
     ap.add_argument("--renewable_data_type", type=str, choices=["wind", "solar", "all"], default="all", help="Type of renewable energy data to use")
+    ap.add_argument(
+        "--num_clients",
+        type=int,
+        default=None,
+        help="Number of FL clients to simulate. Defaults to all available sites after feature filtering.",
+    )
     args = ap.parse_args()
 
     root = Path(__file__).resolve().parents[1]
@@ -386,7 +392,10 @@ def main():
     print("Starting federated learning simulation...")
     
     # 确保客户端数量不超过可用站点数量
-    num_clients = min(2, len(dfs))
+    requested_clients = len(dfs) if args.num_clients is None else args.num_clients
+    num_clients = min(requested_clients, len(dfs))
+    if num_clients < 2:
+        raise ValueError("Federated simulation requires at least 2 clients.")
     print(f"Using {num_clients} clients out of {len(dfs)} available sites")
     
     # 创建初始全局模型

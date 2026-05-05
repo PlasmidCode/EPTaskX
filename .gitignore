@@ -2,3 +2,32 @@ TaskScheduleSimu/venv/
 TaskScheduleSimu/results/
 TaskScheduleSimu/src/**/__pycache__/
 TaskScheduleSimu/src/**/*.pyc
+
+# Python caches
+__pycache__/
+*.py[cod]
+
+# Local experiment scratch/output artifacts
+*.log
+*.tmp
+*.bak
+events.out.tfevents.*
+
+# FLMixedPrediction generated artifacts.
+# Keep curated benchmark snapshots (v4/v5/v6) under version control;
+# ignore ad-hoc runs, TensorBoard logs, checkpoints, and legacy output folders.
+FLMixedPrediction/logs/
+FLMixedPrediction/outputs/
+FLMixedPrediction/lab/**/results/
+FLMixedPrediction/results/logs/
+FLMixedPrediction/results/models/
+FLMixedPrediction/results/figures/
+FLMixedPrediction/results/fed_moe_experiment*/
+FLMixedPrediction/results/unified_benchmark/
+FLMixedPrediction/results/unified_benchmark_v[0-3]/
+FLMixedPrediction/results/unified_benchmark_v*_tmp*/
+FLMixedPrediction/results/unified_benchmark_v*_probe*/
+FLMixedPrediction/results/unified_benchmark_v*_smoke*/
+!FLMixedPrediction/results/unified_benchmark_v4/
+!FLMixedPrediction/results/unified_benchmark_v5/
+!FLMixedPrediction/results/unified_benchmark_v6/

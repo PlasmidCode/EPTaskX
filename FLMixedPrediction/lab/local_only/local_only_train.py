@@ -75,7 +75,7 @@ class LocalOnlyTrainer:
     
     def preprocess_data(self, df):
         """
-        预处理数据，参考run_and_visualize.py中的实现
+        预处理数据，沿用旧版单站点实验的特征处理逻辑
         """
         # 处理时间列
         time_columns = ['Time(year-month-day h:m:s)', 'Time', 'time']
@@ -167,7 +167,7 @@ class LocalOnlyTrainer:
     
     def prepare_features(self, df, site_name):
         """
-        构建特征和目标数据，参考run_and_visualize.py中的build_features方法
+        构建特征和目标数据
         """
         # 处理缺失值
         df = df.fillna(method='ffill').fillna(method='bfill')

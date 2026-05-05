@@ -87,7 +87,7 @@ class FedPerTrainer:
     
     def preprocess_data(self, df):
         """
-        预处理数据，参考run_and_visualize.py中的实现
+        预处理数据，沿用旧版单站点实验的特征处理逻辑
         """
         # 处理时间列
         time_columns = ['Time(year-month-day h:m:s)', 'Time', 'time']

@@ -1,4 +1,4 @@
-# FLMixedPrediction: Two-Site Federated Forecasting (PV + Wind)
+﻿# FLMixedPrediction: Two-Site Federated Forecasting (PV + Wind)
 
 ## Overview
 This project implements federated learning for forecasting solar PV and wind power generation using two different models:
@@ -36,6 +36,35 @@ python -m src.run_demo --rounds 3 --seq 24 --horizon 1
 python -m src.run_demo --rounds 3 --seq 24 --horizon 1 --model moe --num_experts 3
 ```
 
+Use all renewable sites after feature filtering, or cap the simulation explicitly:
+
+```bash
+python -m src.run_demo --use_renewable --renewable_data_type all --model moe --num_clients 8
+```
+
+## Unified Prediction Benchmark
+
+The paper-oriented benchmark compares persistence, local training, centralized training, FedAvg, FedPer, and FL+MoE across 1h/6h/24h horizons:
+
+```bash
+python lab/fed_moe/run_unified_benchmark.py ^
+  --output-dir results/unified_benchmark_v6 ^
+  --device auto ^
+  --amp ^
+  --postprocess auto ^
+  --feature-preset v5 ^
+  --reset-seed-per-run
+```
+
+The benchmark writes point metrics and interval metrics:
+
+- Point metrics: MSE, RMSE, MAE, R2, SMAPE, WAPE, NRMSE, correlation.
+- Interval metrics: PICP, PINAW, quantile losses, and interval width from validation-residual P10/P90 calibration.
+- Scheduler interface: `forecast_for_scheduler.csv` with `site_id,slot,r_mean_kwh,r_p10_kwh,r_p90_kwh`, ready for `TaskScheduleSimu`.
+- Figures: publication-style PNG and PDF plots under `results/<run>/figures`.
+- Curated snapshots: `results/unified_benchmark_v4`, `results/unified_benchmark_v5`, and `results/unified_benchmark_v6`.
+- Scratch runs, TensorBoard logs, and model checkpoints are ignored by git.
+
 ## Command Line Arguments
 
 - `--rounds`: Number of federated learning rounds (default: 3)
@@ -45,23 +74,32 @@ python -m src.run_demo --rounds 3 --seq 24 --horizon 1 --model moe --num_experts
 - `--batch`: Batch size (default: 64)
 - `--model`: Model type to use (`tiny_lstm` or `moe`, default: `tiny_lstm`)
 - `--num_experts`: Number of experts for MOE model (default: 3)
+- `--num_clients`: Number of FL clients to simulate. Defaults to all available renewable sites after feature filtering.
 
 ## Project Structure
 
 ```
 FLMixedPrediction/
-├── README.md              # Project documentation
-├── data/                 # Generated data files
-│   ├── pv_site.csv       # Solar PV data
-│   └── wind_site.csv     # Wind power data
-├── requirements.txt      # Python dependencies
-├── scripts/              # Utility scripts
-│   └── make_data.py      # Data generation script
-└── src/                  # Source code
-    ├── __pycache__/      # Compiled Python files
-    ├── model.py          # Model definitions (TinyLSTM and MOE)
-    ├── run_demo.py       # Federated learning simulation
-    └── utils.py          # Utility functions
+|-- README.md
+|-- requirements.txt
+|-- configs/                       # Baseline configuration files
+|-- data/                          # Renewable generation datasets
+|-- scripts/                       # Synthetic data and utility scripts
+|-- src/                           # Flower demo implementation
+|   |-- model.py                   # TinyLSTM, MOE, and AMD models
+|   |-- run_demo.py                # Federated forecasting demo
+|   `-- utils.py
+|-- lab/
+|   |-- centralized/               # Legacy centralized-training code
+|   |-- fed_avg/                   # Legacy FedAvg/FedPer code
+|   `-- fed_moe/
+|       |-- run_unified_benchmark.py
+|       `-- run_fed_moe_experiment.py
+`-- results/
+    |-- README.md
+    |-- unified_benchmark_v4/      # Baseline snapshot
+    |-- unified_benchmark_v5/      # Refined benchmark snapshot
+    `-- unified_benchmark_v6/      # GPU/AMP + calibrated final snapshot
 ```
 
 ## Understanding the Output
